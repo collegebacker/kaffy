@@ -79,8 +79,16 @@ defmodule Kaffy.ResourceForm do
   defp build_html_input(schema, form, {field, options}, type, opts, readonly \\ false) do
     data = schema
     {conn, opts} = Keyword.pop(opts, :conn)
-    opts = Keyword.put(opts, :readonly, readonly)
     schema = schema.__struct__
+    opts = Keyword.put(opts, :readonly, readonly)
+
+    opts =
+      if options[:value] do
+        value = options[:value].(data)
+        Keyword.put(opts, :value, value)
+      else
+        opts
+      end
 
     case type do
       {:embed, %{cardinality: :one}} ->
@@ -127,7 +135,13 @@ defmodule Kaffy.ResourceForm do
         end
 
       :string ->
-        text_input(form, field, opts)
+        if options[:value] do
+          value = options[:value].(data)
+          opts = Keyword.put(opts, :value, value)
+          text_input(form, field, opts)
+        else
+          text_input(form, field, opts)
+        end
 
       :richtext ->
         opts = add_class(opts, "kaffy-editor")
@@ -321,7 +335,6 @@ defmodule Kaffy.ResourceForm do
         Kaffy.ResourceSchema.association(schema, a).owner_key == field
       end)
       |> Enum.at(0)
-      |> IO.inspect(label: "DEBUG>>> actual_assoc")
 
     field_no_id =
       case actual_assoc do
@@ -329,7 +342,6 @@ defmodule Kaffy.ResourceForm do
         _ -> Kaffy.ResourceSchema.association(schema, actual_assoc).field
       end
 
-    IO.inspect(field_no_id, label: "DEBUG>>> field_no_id")
     case field_no_id in Kaffy.ResourceSchema.associations(schema) do
       true ->
         assoc = Kaffy.ResourceSchema.association_schema(schema, field_no_id)
