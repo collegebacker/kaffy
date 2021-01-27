@@ -260,25 +260,32 @@ defmodule Kaffy.ResourceForm do
   end
 
   defp flatpickr_generic(form, field, opts, placeholder, fp_class, icon \\ "📅") do
-    opts = Keyword.put(opts, :class, "flatpickr-input")
-    opts = Keyword.put(opts, :class, "form-control")
-    opts = Keyword.put(opts, :id, "inlineFormInputGroup")
-    opts = Keyword.put(opts, :placeholder, placeholder)
-    opts = Keyword.put(opts, :"data-input", "")
+    opts =
+      opts
+      |> Keyword.put(:class, "flatpickr-input")
+      |> Keyword.put(:class, "form-control")
+      |> Keyword.put(:id, "inlineFormInputGroup")
+      |> Keyword.put(:"data-input", "")
 
-    [
-      {:safe, ~s(
-            <div class="input-group mb-2 flatpickr #{fp_class}">
-              <div class="input-group-prepend">
-                <div class="input-group-text" data-clear>❌</div>
-              </div>
-              <div class="input-group-prepend">
-                <div class="input-group-text" data-toggle>#{icon}</div>
-              </div>
-          )},
-      text_input(form, field, opts),
-      {:safe, "</div>"}
-    ]
+    if opts[:readonly] do
+      text_input(form, field, opts)
+    else
+      opts = Keyword.put(opts, :placeholder, placeholder)
+
+      [
+        {:safe, ~s(
+                <div class="input-group mb-2 flatpickr #{fp_class}">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text" data-clear>❌</div>
+                  </div>
+                  <div class="input-group-prepend">
+                    <div class="input-group-text" data-toggle>#{icon}</div>
+                  </div>
+              )},
+        text_input(form, field, opts),
+        {:safe, "</div>"}
+      ]
+    end
   end
 
   defp text_or_assoc(conn, schema, form, field, opts) do
