@@ -131,13 +131,19 @@ defmodule Kaffy.ResourceQuery do
               query = from(s in q, join: a in assoc(s, ^association))
 
               Enum.reduce(fields, query, fn f, current_query ->
-                from([..., r] in current_query,
-                  or_where: ilike(type(field(r, ^f), :string), ^term)
-                )
+                if id_field?(f) do
+                  from([..., r] in current_query, or_where: field(r, ^f) == ^search)
+                else
+                  from([..., r] in current_query, or_where: ilike(type(field(r, ^f), :string), ^term) )
+                end
               end)
 
             f, q ->
-              from(s in q, or_where: ilike(type(field(s, ^f), :string), ^term))
+              if id_field?(f) do
+                from(s in q, or_where: field(s, ^f) == ^search)
+              else
+                from(s in q, or_where: ilike(type(field(s, ^f), :string), ^term))
+              end
           end)
       end
 
@@ -148,6 +154,8 @@ defmodule Kaffy.ResourceQuery do
 
     {query, limited_query}
   end
+
+  defp id_field?(name) when is_atom(name), do: Atom.to_string(name) =~ ~r/(\Aid\z|_id\z)/
 
   defp build_filtered_fields_query(query, []), do: query
 
