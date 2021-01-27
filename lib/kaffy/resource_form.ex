@@ -104,13 +104,13 @@ defmodule Kaffy.ResourceForm do
         end)
 
       :id ->
-        case Kaffy.ResourceSchema.primary_key(schema) == [field] do
+        case readonly || Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, opts)
         end
 
       :binary_id ->
-        case Kaffy.ResourceSchema.primary_key(schema) == [field] do
+        case readonly || Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, opts)
         end
@@ -248,6 +248,7 @@ defmodule Kaffy.ResourceForm do
         Kaffy.ResourceSchema.association(schema, a).owner_key == field
       end)
       |> Enum.at(0)
+      |> IO.inspect(label: "DEBUG>>> actual_assoc")
 
     field_no_id =
       case actual_assoc do
@@ -255,6 +256,7 @@ defmodule Kaffy.ResourceForm do
         _ -> Kaffy.ResourceSchema.association(schema, actual_assoc).field
       end
 
+    IO.inspect(field_no_id, label: "DEBUG>>> field_no_id")
     case field_no_id in Kaffy.ResourceSchema.associations(schema) do
       true ->
         assoc = Kaffy.ResourceSchema.association_schema(schema, field_no_id)
