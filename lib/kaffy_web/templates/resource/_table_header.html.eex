@@ -7,17 +7,17 @@
     </th>
     <%= for field <- @fields do %>
         <% field_name = Kaffy.ResourceSchema.kaffy_field_name(@my_resource[:schema], field) |> String.upcase() %>
+        <% field_sortable = Kaffy.ResourceSchema.kaffy_field_sortable?(@my_resource[:schema], field) %>
         <% [{order_way, order_field}] = Kaffy.ResourceQuery.get_ordering(@my_resource, @params) %>
-        <% skip_sort = elem(field, 1) && !!elem(field, 1)[:skip_sort] %>
 
         <th>
             <%= if order_field == elem(field, 0) do %>
                 <a name="<%= field_name %>" class="kaffy-order-field" data-order="<%= if order_way == :desc do %>asc<% else %>desc<% end %>" data-field="<%= elem(field, 0) %>"><%= field_name %> <i class="fas fa-<%= if order_way == :desc do %>arrow-down<% else %>arrow-up<% end %>"></i><a>
             <% else %>
-                <%= if skip_sort do %>
-                    <%= field_name %>
-                <% else %>
+                <%= if field_sortable do %>
                     <a name="<%= field_name %>" class="kaffy-order-field" data-order="asc" data-field="<%= elem(field, 0) %>"><%= field_name %><a>
+                <% else %>
+                    <%= field_name %>
                 <% end %>
             <% end %>
         </th>
