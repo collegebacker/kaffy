@@ -218,7 +218,7 @@ defmodule Kaffy.ResourceSchema do
     end
   end
 
-  def kaffy_field_sortable?(_schema, {field, options}), do: !Map.get(options || %{}, :no_sort, false)
+  def kaffy_field_sortable?(_schema, {_field, options}), do: !Map.get(options || %{}, :no_sort, false)
   def kaffy_field_sortable?(_schema, _field_options), do: false
 
   def display_string_fields([], all), do: Enum.reverse(all) |> Enum.join(",")
