@@ -220,6 +220,16 @@ defmodule Kaffy.ResourceSchema do
   def kaffy_field_sortable?(_schema, {_field, options}), do: !Map.get(options || %{}, :no_sort, false)
   def kaffy_field_sortable?(_schema, _field_options), do: false
 
+  def kaffy_target_url(entry, context, {field, %{target_url: target_url}}) when is_function(target_url) do
+    target_url.(entry, field, context)
+  end
+
+  def kaffy_target_url(entry, _context, {_field, %{target_url: target_url}}) when is_binary(target_url) do
+    Enum.join([target_url, entry.id])
+  end
+
+  def kaffy_target_url(_entry, _context, {_field, _options}), do: nil
+
   def display_string_fields([], all), do: Enum.reverse(all) |> Enum.join(",")
 
   def display_string_fields([{field, _} | rest], all) do
