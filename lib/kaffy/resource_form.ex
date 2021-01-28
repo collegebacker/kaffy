@@ -149,7 +149,7 @@ defmodule Kaffy.ResourceForm do
         text_input(form, field, opts)
 
       t when t in [:boolean, :boolean_checkbox] ->
-        checkbox_opts = Keyword.put(opts, :class, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = Keyword.put(opts, :class, "custom-control-label")
 
         [
@@ -160,7 +160,7 @@ defmodule Kaffy.ResourceForm do
         ]
 
       :boolean_switch ->
-        checkbox_opts = Keyword.put(opts, :class, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = Keyword.put(opts, :class, "custom-control-label")
 
         [
@@ -215,6 +215,16 @@ defmodule Kaffy.ResourceForm do
 
       _ ->
         text_input(form, field, opts)
+    end
+  end
+
+  defp checkbox_options(opts) do
+    checkbox_opts = Keyword.put(opts, :class, "custom-control-input")
+
+    if opts[:readonly] do
+      Keyword.put(checkbox_opts, :disabled, true)
+    else
+      checkbox_opts
     end
   end
 
