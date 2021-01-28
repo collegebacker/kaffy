@@ -291,6 +291,16 @@ defmodule Kaffy.ResourceForm do
     end
   end
 
+  defp checkbox_options(opts) do
+    checkbox_opts = Keyword.put(opts, :class, "custom-control-input")
+
+    if opts[:readonly] do
+      Keyword.put(checkbox_opts, :disabled, true)
+    else
+      checkbox_opts
+    end
+  end
+
   defp flatpickr_time(form, field, opts) do
     flatpickr_generic(form, field, opts, "Select Date...", "flatpickr-wrap-time", "🕒")
   end
