@@ -1,0 +1,16 @@
+<%= if Kaffy.ResourceAdmin.resource_actions(@my_resource, @conn) do %>
+    <div class="float-right">
+        <div class="btn-group">
+            <button type="button" class="btn dropdown-toggle btn-sm btn-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-wrench"></i> <span class="d-none d-md-inline">Actions</span>
+            </button>
+            <div class="dropdown-menu">
+                <%= for {action_key, options} <- Kaffy.ResourceAdmin.resource_actions(@my_resource, @conn) do %>
+                    <%= form_tag(Kaffy.Utils.router().kaffy_resource_path(@conn, :single_action, @context, @resource, @changeset.data.id, to_string(action_key)), method: :post) %>
+                        <input type="submit" name="submit" value="<%= options.name %>" class="dropdown-item" />
+                    </form>
+                <% end %>
+            </div>
+        </div>
+    </div>
+<% end %>
