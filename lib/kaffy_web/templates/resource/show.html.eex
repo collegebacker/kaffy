@@ -1,22 +1,16 @@
-<%= if true do %>
-  <div class="row">
-    <div class="col">
-      <%= render KaffyWeb.ResourceView, "_resource_actions.html",
-            conn: @conn,
-            changeset: @changeset,
-            my_resource: @my_resource,
-            context: @context,
-            resource: @resource %>
-    </div>
-  </div>
-  <%= render KaffyWeb.ResourceView, "_edit_resource.html",
-        conn: @conn,
-        changeset: @changeset,
-        my_resource: @my_resource,
-        resource_name: @resource_name,
-        context: @context,
-        resource: @resource %>
-<% else %>
+<% template_context = [
+      conn: @conn,
+      changeset: @changeset,
+      my_resource: @my_resource,
+      resource_name: @resource_name,
+      context: @context,
+      resource: @resource ] %>
+
+<% page = Kaffy.ResourceAdmin.overview_page(@my_resource, @conn) %>
+
+<%= if page do %>
+  <% data = if is_function(page.data), do: page.data.(@changeset), else: page.data %>
+  <% template_context = Keyword.merge(template_context, data) %>
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
     <li class="nav-item" role="presentation">
@@ -26,30 +20,31 @@
       <a class="nav-link" id="edit-tab" data-toggle="tab" href="#edit" role="tab" aria-controls="edit" aria-selected="false">Edit</a>
     </li>
     <li class="ml-auto">
-      <%= render KaffyWeb.ResourceView, "_resource_actions.html",
-            conn: @conn,
-            changeset: @changeset,
-            my_resource: @my_resource,
-            context: @context,
-            resource: @resource %>
+      <%= render KaffyWeb.ResourceView, "_resource_actions.html", template_context %>
     </li>
   </ul>
 
   <!-- Tab panes -->
   <div class="tab-content">
+
     <div class="tab-pane active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-      <h2>TODO</h2>
+      <div class="mt-3">
+        <%= render page.view, page.template, template_context %>
+      </div>
     </div>
+
     <div class="tab-pane" id="edit" role="tabpanel" aria-labelledby="edit-tab">
-      <%= render KaffyWeb.ResourceView, "_edit_resource.html",
-            conn: @conn,
-            changeset: @changeset,
-            my_resource: @my_resource,
-            resource_name: @resource_name,
-            context: @context,
-            resource: @resource %>
+      <%= render KaffyWeb.ResourceView, "_edit_resource.html", template_context %>
+    </div>
+
+  </div>
+<% else %>
+  <div class="row">
+    <div class="col">
+      <%= render KaffyWeb.ResourceView, "_resource_actions.html", template_context %>
     </div>
   </div>
+  <%= render KaffyWeb.ResourceView, "_edit_resource.html", template_context %>
 <% end %>
 
 <div class="mt-3 grid-margin stretch-card">
