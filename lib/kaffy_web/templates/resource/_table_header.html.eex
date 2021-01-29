@@ -29,7 +29,23 @@
         <th class="bg-light"></th>
         <%= for {field, index} <- Enum.with_index(@fields) do %>
             <% {field, filters} = Kaffy.ResourceSchema.kaffy_field_filters(@my_resource[:schema], field) %>
-            <%= if filters do %>
+            <%= cond do %>
+            <% filters == true -> %>
+                <% filter_name = "_search-#{field}" %>
+                <th class="bg-light">
+                    <%= form_tag @index_path, method: :get %>
+                        <input type="hidden" name="context" value="<%= @context %>" />
+                        <input type="hidden" name="resource" value="<%= @resource %>" />
+                        <input
+                            class="form-control bg-white border border-dark text-dark p-1 text-center"
+                            type="text"
+                            name="<%= filter_name%>"
+                            value="<%= Map.get(@params, filter_name) %>"
+                            style="min-width: 60px; height: 30px;"
+                        />
+                    </form>
+                </th>
+            <% is_list(filters) -> %>
                 <th class="bg-light">
                     <select class="kaffy-filter custom-select" id="kaffy-field-<%= index %>" data-field-name="<%= field %>">
                         <option value="">All</option>
@@ -38,7 +54,7 @@
                         <% end %>
                     </select>
                 </th>
-            <% else %>
+            <% true -> %>
                 <th class="bg-light"></th>
             <% end %>
         <% end %>

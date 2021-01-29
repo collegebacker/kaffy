@@ -58,7 +58,11 @@
     </div>
 
     <div class="index-pagination">
-    <% params = Map.to_list(@params) |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end) %>
+    <% params =
+      Map.to_list(@params)
+      |> Enum.reject(fn {k, _} -> String.starts_with?(k, "_") end)
+      |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
+    %>
       <nav aria-label="index-list-navigation">
         <ul class="pagination">
           <li class="page-item <%= @prev_class %>">
