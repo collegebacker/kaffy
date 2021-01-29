@@ -1,6 +1,7 @@
 <table class="table table-striped">
     <thead>
-        <%= render KaffyWeb.ResourceView, "_table_header.html", my_resource: @my_resource, fields: @fields, params: @params %>
+        <% index_path = Kaffy.Utils.router().kaffy_resource_path(@conn, :index, @context, @resource) %>
+        <%= render KaffyWeb.ResourceView, "_table_header.html", my_resource: @my_resource, fields: @fields, params: @params, index_path: index_path, context: @context, resource: @resource %>
     </thead>
 
     <tbody>
