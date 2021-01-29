@@ -37,7 +37,7 @@
                         <input type="hidden" name="context" value="<%= @context %>" />
                         <input type="hidden" name="resource" value="<%= @resource %>" />
                         <input
-                            class="form-control bg-white border border-dark text-dark p-1 text-center"
+                            class="form-control bg-white border border-primary text-dark p-1 text-center"
                             type="text"
                             name="<%= filter_name%>"
                             value="<%= Map.get(@params, filter_name) %>"
