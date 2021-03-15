@@ -312,18 +312,29 @@ defmodule KaffyWeb.ResourceController do
     end
   end
 
-  def single_action(conn, %{
-        "context" => context,
-        "resource" => resource,
-        "id" => id,
-        "action_key" => action_key
-      }) do
+  def single_action(
+        conn,
+        %{
+          "context" => context,
+          "resource" => resource,
+          "id" => id,
+          "action_key" => action_key
+        } = params
+      ) do
     my_resource = Kaffy.Utils.get_resource(conn, context, resource)
     entry = Kaffy.ResourceQuery.fetch_resource(conn, my_resource, id)
     actions = Kaffy.ResourceAdmin.resource_actions(my_resource, conn)
     action_record = get_action_record(actions, action_key)
+    kaffy_inputs = Map.get(params, "kaffy-input", nil)
 
-    case action_record.action.(conn, entry) do
+    result =
+      if kaffy_inputs do
+        action_record.action.(conn, entry, kaffy_inputs)
+      else
+        action_record.action.(conn, entry)
+      end
+
+    case result do
       {:ok, entry} ->
         conn = put_flash(conn, :success, "Action performed successfully")
         redirect_to_resource(conn, context, resource, entry)
