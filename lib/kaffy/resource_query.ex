@@ -92,15 +92,6 @@ defmodule Kaffy.ResourceQuery do
   end
 
   defp get_filter_fields(params, resource) do
-    params =
-      Enum.map(params, fn {name, value} ->
-        if String.starts_with?(name, "_search-") do
-          {String.replace_leading(name, "_search-", ""), value}
-        else
-          {name, value}
-        end
-      end)
-
     schema_fields =
       Kaffy.ResourceSchema.fields(resource[:schema]) |> Enum.map(fn {k, _} -> to_string(k) end)
 
