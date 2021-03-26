@@ -31,7 +31,6 @@
             <% {field, filters} = Kaffy.ResourceSchema.kaffy_field_filters(@my_resource[:schema], field) %>
             <%= cond do %>
             <% filters == true -> %>
-                <% filter_name = "_search-#{field}" %>
                 <th class="bg-light">
                     <%= form_tag @index_path, method: :get %>
                         <input type="hidden" name="context" value="<%= @context %>" />
@@ -39,8 +38,8 @@
                         <input
                             class="form-control bg-white border border-primary text-dark p-1 text-center"
                             type="text"
-                            name="<%= filter_name%>"
-                            value="<%= Map.get(@params, filter_name) %>"
+                            name="<%= field%>"
+                            value="<%= Map.get(@params, to_string(field)) %>"
                             style="min-width: 60px; height: 30px;"
                         />
                     </form>
