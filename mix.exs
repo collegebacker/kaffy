@@ -1,7 +1,7 @@
 defmodule Kaffy.MixProject do
   use Mix.Project
 
-  @version "0.9.1"
+  @version "0.9.2"
 
   def project do
     [
@@ -30,8 +30,8 @@ defmodule Kaffy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix, "~> 1.4"},
-      {:phoenix_html, "~> 2.13 or ~> 3.0"},
+      {:phoenix, "~> 1.6"},
+      {:phoenix_html, "~> 3.0"},
       {:mock, "~> 0.3.0", only: :test},
       {:ecto, "~> 3.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
