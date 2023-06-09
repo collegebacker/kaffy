@@ -135,6 +135,20 @@ defmodule Kaffy.ResourceAdmin do
 
   @doc """
   `default_actions/1` takes a schema and returns the default actions for the schema.
+  If `default_actions/1` is not defined, Kaffy will return `[:new, :edit, :delete]`.
+  Example:
+  ```elixir
+  def default_actions(_schema) do
+    [:new, :delete]
+  end
+  ```
+  """
+  def default_actions(resource) do
+    Utils.get_assigned_value_or_default(resource, :default_actions, [:new, :edit, :delete])
+  end
+
+  @doc """
+  `default_actions/1` takes a schema and returns the default actions for the schema.
 
   If `default_actions/1` is not defined, Kaffy will return `[:new, :edit, :delete]`.
 
@@ -361,6 +375,16 @@ defmodule Kaffy.ResourceAdmin do
     |> collect_pages()
     |> Enum.filter(fn p -> p.slug == slug end)
     |> Enum.at(0)
+  end
+
+  def overview_page(resource, conn) do
+    case Utils.get_assigned_value_or_default(resource, :overview_page, nil, [conn]) do
+      nil ->
+        nil
+
+      payload ->
+        Map.merge(%{view: :not_set, template: :not_set, data: :not_set}, payload)
+    end
   end
 
   def custom_links(resource, location \\ nil) do

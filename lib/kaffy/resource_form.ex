@@ -80,6 +80,15 @@ defmodule Kaffy.ResourceForm do
     data = schema
     {conn, opts} = Keyword.pop(opts, :conn)
     opts = Keyword.put(opts, :readonly, readonly)
+
+    opts =
+      if options[:value] do
+        value = options[:value].(data)
+        Keyword.put(opts, :value, value)
+      else
+        opts
+      end
+
     schema = schema.__struct__
 
     case type do
@@ -115,19 +124,25 @@ defmodule Kaffy.ResourceForm do
         textarea(form, field, [value: value, rows: 4, placeholder: "JSON Content"] ++ opts)
 
       :id ->
-        case Kaffy.ResourceSchema.primary_key(schema) == [field] do
+        case readonly || Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, opts)
         end
 
       :binary_id ->
-        case Kaffy.ResourceSchema.primary_key(schema) == [field] do
+        case readonly || Kaffy.ResourceSchema.primary_key(schema) == [field] do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, opts)
         end
 
       :string ->
-        text_input(form, field, opts)
+        if options[:value] do
+          value = options[:value].(data)
+          opts = Keyword.put(opts, :value, value)
+          text_input(form, field, opts)
+        else
+          text_input(form, field, opts)
+        end
 
       :richtext ->
         opts = add_class(opts, "kaffy-editor")
@@ -146,7 +161,7 @@ defmodule Kaffy.ResourceForm do
         text_input(form, field, opts)
 
       t when t in [:boolean, :boolean_checkbox] ->
-        checkbox_opts = add_class(opts, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = add_class(opts, "custom-control-label")
 
         [
@@ -157,7 +172,7 @@ defmodule Kaffy.ResourceForm do
         ]
 
       :boolean_switch ->
-        checkbox_opts = add_class(opts, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = add_class(opts, "custom-control-label")
 
         [
@@ -277,6 +292,16 @@ defmodule Kaffy.ResourceForm do
     end
   end
 
+  defp checkbox_options(opts) do
+    checkbox_opts = add_class(opts, "custom-control-input")
+
+    if opts[:readonly] do
+      Keyword.put(checkbox_opts, :disabled, true)
+    else
+      checkbox_opts
+    end
+  end
+
   defp flatpickr_time(form, field, opts) do
     flatpickr_generic(form, field, opts, "Select Date...", "flatpickr-wrap-time", "🕒")
   end
@@ -297,11 +322,15 @@ defmodule Kaffy.ResourceForm do
     opts = add_class(opts, "flatpickr-input")
     opts = add_class(opts, "form-control")
     opts = Keyword.put(opts, :id, "inlineFormInputGroup")
-    opts = Keyword.put(opts, :placeholder, placeholder)
     opts = Keyword.put(opts, :"data-input", "")
 
-    [
-      {:safe, ~s(
+    if opts[:readonly] do
+      text_input(form, field, opts)
+    else
+      opts = Keyword.put(opts, :placeholder, placeholder)
+
+      [
+        {:safe, ~s(
             <div class="input-group mb-2 flatpickr #{fp_class}">
               <div class="input-group-prepend">
                 <div class="input-group-text" data-clear>❌</div>
@@ -310,9 +339,10 @@ defmodule Kaffy.ResourceForm do
                 <div class="input-group-text" data-toggle>#{icon}</div>
               </div>
           )},
-      text_input(form, field, opts),
-      {:safe, "</div>"}
-    ]
+        text_input(form, field, opts),
+        {:safe, "</div>"}
+      ]
+    end
   end
 
   defp text_or_assoc(conn, schema, form, field, opts) do
