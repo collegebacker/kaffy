@@ -38,7 +38,6 @@ defmodule Kaffy.MixProject do
       {:ecto, "~> 3.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:jason, "~> 1.3", only: :test},
-      {:mime, "~> 2.0"},
       {:mock, "~> 0.3.3", only: :test},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_view, "~> 2.0"},
