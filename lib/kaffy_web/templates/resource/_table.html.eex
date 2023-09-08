@@ -1,6 +1,7 @@
 <table class="table table-striped">
     <thead>
-        <%= render KaffyWeb.ResourceView, "_table_header.html", my_resource: @my_resource, fields: @fields, params: @params %>
+        <% index_path = Kaffy.Utils.router().kaffy_resource_path(@conn, :index, @context, @resource) %>
+        <%= render KaffyWeb.ResourceView, "_table_header.html", my_resource: @my_resource, fields: @fields, params: @params, index_path: index_path, context: @context, resource: @resource %>
     </thead>
 
     <tbody>
@@ -13,10 +14,17 @@
                     </div>
                 </td>
                 <%= for {field, index} <- Enum.with_index(@fields) do %>
-                    <%= if index == 0 do %>
-                        <td><%= link Kaffy.ResourceSchema.kaffy_field_value(@conn, entry, field), to: Kaffy.Utils.router().kaffy_resource_path(@conn, :show, @context, @resource, Kaffy.ResourceAdmin.serialize_id(@my_resource, entry)) %></td>
+                    <% value = Kaffy.ResourceSchema.kaffy_field_value(@conn, entry, field) %>
+                    <% url = Kaffy.ResourceSchema.kaffy_target_url(entry, @context, field) %>
+
+                    <%= if url do %>
+                        <td><%= link value, to: url %></td>
                     <% else %>
-                        <td><%= Kaffy.ResourceSchema.kaffy_field_value(@conn, entry, field) %></td>
+                        <%= if index == 0 do %>
+                            <td><%= link value, to: Kaffy.Utils.router().kaffy_resource_path(@conn, :show, @context, @resource, Kaffy.ResourceAdmin.serialize_id(@my_resource, entry)) %></td>
+                        <% else %>
+                            <td><%= value %></td>
+                        <% end %>
                     <% end %>
                 <% end %>
             </tr>
