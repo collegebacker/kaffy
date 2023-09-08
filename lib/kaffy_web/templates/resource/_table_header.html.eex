@@ -7,13 +7,18 @@
     </th>
     <%= for field <- @fields do %>
         <% field_name = Kaffy.ResourceSchema.kaffy_field_name(@my_resource[:schema], field) |> String.upcase() %>
+        <% field_sortable = Kaffy.ResourceSchema.kaffy_field_sortable?(@my_resource[:schema], field) %>
         <% [{order_way, order_field}] = Kaffy.ResourceQuery.get_ordering(@my_resource, @params) %>
 
         <th>
             <%= if order_field == elem(field, 0) do %>
                 <a name="<%= field_name %>" class="kaffy-order-field" data-order="<%= if order_way == :desc do %>asc<% else %>desc<% end %>" data-field="<%= elem(field, 0) %>"><%= field_name %> <i class="fas fa-<%= if order_way == :desc do %>arrow-down<% else %>arrow-up<% end %>"></i><a>
             <% else %>
-                <a name="<%= field_name %>" class="kaffy-order-field" data-order="asc" data-field="<%= elem(field, 0) %>"><%= field_name %><a>
+                <%= if field_sortable do %>
+                    <a name="<%= field_name %>" class="kaffy-order-field" data-order="asc" data-field="<%= elem(field, 0) %>"><%= field_name %><a>
+                <% else %>
+                    <%= field_name %>
+                <% end %>
             <% end %>
         </th>
     <% end %>
@@ -24,7 +29,22 @@
         <th class="bg-light"></th>
         <%= for {field, index} <- Enum.with_index(@fields) do %>
             <% {field, filters} = Kaffy.ResourceSchema.kaffy_field_filters(@my_resource[:schema], field) %>
-            <%= if filters do %>
+            <%= cond do %>
+            <% filters == true -> %>
+                <th class="bg-light">
+                    <%= form_tag @index_path, method: :get %>
+                        <input type="hidden" name="context" value="<%= @context %>" />
+                        <input type="hidden" name="resource" value="<%= @resource %>" />
+                        <input
+                            class="form-control bg-white border border-primary text-dark p-1 text-center"
+                            type="text"
+                            name="<%= field%>"
+                            value="<%= Map.get(@params, to_string(field)) %>"
+                            style="min-width: 60px; height: 30px;"
+                        />
+                    </form>
+                </th>
+            <% is_list(filters) -> %>
                 <th class="bg-light">
                     <select class="kaffy-filter custom-select" id="kaffy-field-<%= index %>" data-field-name="<%= field %>">
                         <option value="">All</option>
@@ -33,7 +53,7 @@
                         <% end %>
                     </select>
                 </th>
-            <% else %>
+            <% true -> %>
                 <th class="bg-light"></th>
             <% end %>
         <% end %>
