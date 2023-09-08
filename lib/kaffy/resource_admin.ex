@@ -496,6 +496,16 @@ defmodule Kaffy.ResourceAdmin do
     |> Enum.at(0)
   end
 
+  def overview_page(resource, conn) do
+    case Utils.get_assigned_value_or_default(resource, :overview_page, nil, [conn]) do
+      nil ->
+        nil
+
+      payload ->
+        Map.merge(%{view: :not_set, template: :not_set, data: :not_set}, payload)
+    end
+  end
+
   def custom_links(resource, location \\ nil) do
     links = Utils.get_assigned_value_or_default(resource, :custom_links, [])
 
