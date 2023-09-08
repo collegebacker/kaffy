@@ -86,7 +86,12 @@ defmodule Kaffy.ResourceForm do
   defp build_html_input(schema, form, {field, options}, type, opts, readonly \\ false) do
     data = schema
     {conn, opts} = Keyword.pop(opts, :conn)
-    opts = Keyword.put(opts, :readonly, readonly)
+
+    opts =
+      opts
+      |> Keyword.put(:readonly, readonly)
+      |> put_value_if_set(data, options[:value])
+
     schema = schema.__struct__
 
     case type do
@@ -122,18 +127,19 @@ defmodule Kaffy.ResourceForm do
         textarea(form, field, [value: value, rows: 4, placeholder: "JSON Content"] ++ opts)
 
       :id ->
-        case field in Kaffy.ResourceSchema.primary_keys(schema) do
+        case readonly || field in Kaffy.ResourceSchema.primary_keys(schema) do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, type, opts)
         end
 
       t when t in [:binary_id, Ecto.ULID] ->
-        case field in Kaffy.ResourceSchema.primary_keys(schema) do
+        case readonly || field in Kaffy.ResourceSchema.primary_keys(schema) do
           true -> text_input(form, field, opts)
           false -> text_or_assoc(conn, schema, form, field, type, opts)
         end
 
       :string ->
+        opts = put_value_if_set(opts, data, options[:value])
         text_input(form, field, opts)
 
       :richtext ->
@@ -164,7 +170,7 @@ defmodule Kaffy.ResourceForm do
         text_input(form, field, [value: value] ++ opts)
 
       t when t in [:boolean, :boolean_checkbox] ->
-        checkbox_opts = add_class(opts, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = add_class(opts, "custom-control-label")
 
         [
@@ -175,7 +181,7 @@ defmodule Kaffy.ResourceForm do
         ]
 
       :boolean_switch ->
-        checkbox_opts = add_class(opts, "custom-control-input")
+        checkbox_opts = checkbox_options(opts)
         label_opts = add_class(opts, "custom-control-label")
 
         [
@@ -303,6 +309,23 @@ defmodule Kaffy.ResourceForm do
 
       _ ->
         text_input(form, field, opts)
+    end
+  end
+
+  defp put_value_if_set(opts, data, fun) when is_function(fun) do
+    value = fun.(data)
+    Keyword.put(opts, :value, value)
+  end
+
+  defp put_value_if_set(opts, _, _), do: opts
+
+  defp checkbox_options(opts) do
+    checkbox_opts = add_class(opts, "custom-control-input")
+
+    if opts[:readonly] do
+      Keyword.put(checkbox_opts, :disabled, true)
+    else
+      checkbox_opts
     end
   end
 

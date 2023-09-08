@@ -181,7 +181,7 @@ defmodule KaffyWeb.ResourceController do
               put_flash(
                 conn,
                 :error,
-                "A problem occurred while trying to save this #{resource}"
+                "A problem occurred while trying to save this #{resource}: #{changeset_error_to_string(changeset)}"
               )
 
             render(conn, "show.html",
@@ -217,6 +217,18 @@ defmodule KaffyWeb.ResourceController do
             )
         end
     end
+  end
+
+  defp changeset_error_to_string(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
+    |> Enum.reduce("", fn {k, v}, acc ->
+      joined_errors = Enum.join(v, "; ")
+      "#{acc}#{k}: #{joined_errors}\n"
+    end)
   end
 
   def new(conn, %{"context" => context, "resource" => resource}) do
@@ -332,18 +344,29 @@ defmodule KaffyWeb.ResourceController do
     end
   end
 
-  def single_action(conn, %{
-        "context" => context,
-        "resource" => resource,
-        "id" => id,
-        "action_key" => action_key
-      }) do
+  def single_action(
+        conn,
+        %{
+          "context" => context,
+          "resource" => resource,
+          "id" => id,
+          "action_key" => action_key
+        } = params
+      ) do
     my_resource = Kaffy.Utils.get_resource(conn, context, resource)
     entry = Kaffy.ResourceQuery.fetch_resource(conn, my_resource, id)
     actions = Kaffy.ResourceAdmin.resource_actions(my_resource, conn)
     action_record = get_action_record(actions, action_key)
+    kaffy_inputs = Map.get(params, "kaffy-input", nil)
 
-    case action_record.action.(conn, entry) do
+    result =
+      if kaffy_inputs do
+        action_record.action.(conn, entry, kaffy_inputs)
+      else
+        action_record.action.(conn, entry)
+      end
+
+    case result do
       {:ok, entry} ->
         conn = put_flash(conn, :success, "Action performed successfully")
         redirect_to_resource(conn, context, resource, entry)
