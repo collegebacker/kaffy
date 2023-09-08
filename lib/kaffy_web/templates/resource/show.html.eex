@@ -1,82 +1,45 @@
+<% template_context = [
+       conn: @conn,
+       changeset: @changeset,
+       my_resource: @my_resource,
+       resource_name: @resource_name,
+       context: @context,
+       resource: @resource ] %>
 
+<% page = Kaffy.ResourceAdmin.overview_page(@my_resource, @conn) %>
 
-<%= for error <- Kaffy.ResourceError.display_errors(@conn, @changeset) do %>
-    <div><%= error %></div>
-<% end %>
+<%= if page do %>
+    <% data = if is_function(page.data), do: page.data.(@changeset), else: page.data %>
+    <% template_context = Keyword.merge(template_context, data) %>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="overview-tab" data-toggle="tab" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="edit-tab" data-toggle="tab" href="#edit" role="tab" aria-controls="edit" aria-selected="false">Edit</a>
+        </li>
+        <li class="ml-auto">
+            <%= render KaffyWeb.ResourceView, "_resource_actions.html", template_context %>
+        </li>
+    </ul>
 
-<div class="mt-3 grid-margin stretch-card">
-    <div class="card shadow <%= Kaffy.ResourceError.form_error_border_class(@changeset, "border-left-success")%>">
-        <div class="card-header">
-            <div class="row justify-content-between">
-                <div class="col-auto mr-auto">
-                    <h1><%= @resource_name %> #<%= Kaffy.ResourceAdmin.serialize_id(@my_resource, @changeset.data) %></h1>
-                </div>
-                <div class="col-auto">
-                    <%= if Kaffy.ResourceAdmin.resource_actions(@my_resource, @conn) do %>
-                        <div class="float-right">
-                            <div class="btn-group">
-                                <button type="button" class="btn dropdown-toggle btn-sm btn-secondary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fas fa-wrench"></i> <span class="d-none d-md-inline">Actions</span>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <%= for {action_key, options} <- Kaffy.ResourceAdmin.resource_actions(@my_resource, @conn) do %>
-                                        <%= form_tag(Kaffy.Utils.router().kaffy_resource_path(@conn, :single_action, @context, @resource, Kaffy.ResourceAdmin.serialize_id(@my_resource, @changeset.data), to_string(action_key)), method: :post) %>
-                                            <input type="submit" name="submit" value="<%= options.name %>" class="dropdown-item" />
-                                        </form>
-                                    <% end %>
-                                </div>
-                            </div>
-                        </div>
-                    <% end %>
-                </div>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div class="tab-pane active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="mt-3">
+                <%= render page.view, page.template, template_context %>
             </div>
         </div>
-        <div class="card-body">
-            <%= form_for @changeset, Kaffy.Utils.router().kaffy_resource_path(@conn, :update, @context, @resource, Kaffy.ResourceAdmin.serialize_id(@my_resource, @changeset.data)), [method: @form_method, multipart: true], fn f -> %>
-                <%= for {field, options} <- Kaffy.ResourceAdmin.form_fields(@my_resource) do %>
-                    <%= if options.update != :hidden do %>
-                        <%= Kaffy.ResourceForm.kaffy_input @conn, @changeset, f, field, options %>
-                    <% end %>
-                <% end %>
-
-                <div class="p-2">
-                    <%= link "Back", to: Kaffy.Utils.router().kaffy_resource_path(@conn, :index, @context, @resource), class: "btn btn-sm btn-light" %>
-                    <%= if @can_edit do %>
-                      <input type="submit" name="submit" value="Save" class="btn btn-sm btn-primary" />
-                      <input type="submit" name="submit" value="Save and add another" class="btn btn-sm btn-primary"/>
-                      <input type="submit" name="submit" value="Save and continue editing" class="btn btn-sm btn-primary" />
-                    <% end %>
-
-                    <%= if @can_delete do %>
-                      <button type="button" class="btn btn-sm btn-danger float-right" data-toggle="modal" data-target="#delete-modal">
-                          <i class="fas fa-trash"></i> Delete
-                      </button>
-                    <% end %>
-                </div>
-            <% end %>
+        <div class="tab-pane" id="edit" role="tabpanel" aria-labelledby="edit-tab">
+            <%= render KaffyWeb.ResourceView, "_edit_resource.html", template_context %>
         </div>
     </div>
-
-    <!-- Modal -->
-    <%= form_for @changeset, Kaffy.Utils.router().kaffy_resource_path(@conn, :delete, @context, @resource, Kaffy.ResourceAdmin.serialize_id(@my_resource, @changeset.data)), [method: :delete], fn _f -> %>
-        <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="delete-modal-label" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="delete-modal-label">Are you sure?</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        You might lose this record and other related records forever if you continue. Make sure this is what you really want to do.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Yes, delete this <%= @resource_name %></button>
-                    </div>
-                </div>
-            </div>
+<% else %>
+    <div class="row">
+        <div class="col">
+            <%= render KaffyWeb.ResourceView, "_resource_actions.html", template_context %>
         </div>
-    <% end %>
-</div>
+    </div>
+    <%= render KaffyWeb.ResourceView, "_edit_resource.html", template_context %>
+ <% end %>
