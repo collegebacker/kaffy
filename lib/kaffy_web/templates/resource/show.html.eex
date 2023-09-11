@@ -1,14 +1,13 @@
 <% template_context = [
-       conn: @conn,
-       changeset: @changeset,
-       my_resource: @my_resource,
-       resource_name: @resource_name,
-       context: @context,
-       resource: @resource ] %>
+    conn: @conn,
+    changeset: @changeset,
+    my_resource: @my_resource,
+    resource_name: @resource_name,
+    context: @context,
+    resource: @resource
+] %>
 
-<% page = Kaffy.ResourceAdmin.overview_page(@my_resource, @conn) %>
-
-<%= if page do %>
+<%= if page = Kaffy.ResourceAdmin.overview_page(@my_resource, @conn) do %>
     <% data = if is_function(page.data), do: page.data.(@changeset), else: page.data %>
     <% template_context = Keyword.merge(template_context, data) %>
     <!-- Nav tabs -->
