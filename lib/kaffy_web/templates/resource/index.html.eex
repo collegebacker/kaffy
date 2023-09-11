@@ -1,3 +1,13 @@
+<% template_context = [
+    conn: @conn,
+    fields: @fields,
+    entries: @entries,
+    params: Map.reject(@params, fn {k, _v} -> k in ["context", "resource"] end),
+    my_resource: @my_resource,
+    context: @context,
+    resource: @resource
+]%>
+
 <div class="col-lg-12 grid-margin stretch-card">
   <div class="card shadow mb-4">
     <div class="card-header">
@@ -62,6 +72,12 @@
           </div>
         </div>
       </div>
+
+      <%= if page = Kaffy.ResourceAdmin.summary_page(@my_resource, @conn) do %>
+        <% data = if is_function(page.data), do: page.data.(template_context[:params]), else: page.data %>
+        <% template_context = Keyword.merge(template_context, data) %>
+        <%= render page.view, page.template, template_context %>
+      <% end %>
 
       <%= render KaffyWeb.ResourceView, "_table.html", conn: @conn, fields: @fields, context: @context, resource: @resource, my_resource: @my_resource, entries: @entries, params: @params %>
     </div>
