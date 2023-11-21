@@ -128,7 +128,7 @@
 <%= for {action_key, options} <- list_actions do %>
   <% extra_inputs = Map.get(options, :inputs, []) %>
   <%= if !Enum.empty?(extra_inputs) do %>
-    <%= form_tag(Kaffy.Utils.router().kaffy_resource_path(@conn, :list_action, @context, @resource, to_string(action_key)), method: :post, class: "list-action", id: "#{action_key}_form") %>
+    <%= form_tag(Kaffy.Utils.router().kaffy_resource_path(@conn, :list_action, @context, @resource, to_string(action_key)), method: :post, multipart: true, class: "list-action", id: "#{action_key}_form") %>
       <div class="modal fade" id="<%= action_key %>_modal" tabindex="-1" role="dialog" aria-labelledby="<%= action_key %>_modal_label" aria-hidden="true">
           <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -150,7 +150,11 @@
                           </select>
                         <% else %>
                           <label><%= extra.title %></label>
-                          <input type="text" data-title="<%= extra.title %>" name="kaffy-input[<%= extra.name %>]" value="<%= extra.default %>" class="form-control kaffy-list-action-input" />
+                          <%= if Map.has_key?(extra, :file_input) && extra.file_input do %>
+                            <input type="file" data-title="<%= extra.title %>" name="kaffy-input[<%= extra.name %>]" class="form-control kaffy-list-action-input" />
+                          <% else %>
+                            <input type="text" data-title="<%= extra.title %>" name="kaffy-input[<%= extra.name %>]" value="<%= extra.default %>" class="form-control kaffy-list-action-input" />
+                          <% end %>
                         <% end %>
                       </div>
                     <% end %>
