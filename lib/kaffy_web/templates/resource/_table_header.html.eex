@@ -53,6 +53,20 @@
                         <% end %>
                     </select>
                 </th>
+            <% is_map(filters) -> %>
+                <th class="bg-light">
+                    <%= form_tag @index_path, method: :get %>
+                        <input type="hidden" name="context" value="<%= @context %>" />
+                        <input type="hidden" name="resource" value="<%= @resource %>" />
+                        <input
+                            class="form-control bg-white border border-primary text-dark p-1 text-center"
+                            type="text"
+                            name="<%= field%>"
+                            value="<%= Map.get(@params, to_string(field)) %>"
+                            style="min-width: 60px; height: 30px;"
+                        />
+                    </form>
+                </th>
             <% true -> %>
                 <th class="bg-light"></th>
             <% end %>

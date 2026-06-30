@@ -444,9 +444,46 @@ end
 
 `:filters` must be a list of tuples where the first element is a human-frieldy string and the second element is the actual field value used to filter the records.
 
+Setting `filters: true` instead renders a free-text input that filters records where the column equals the entered value.
+
 Result
 
 ![Product filters](assets/kaffy_filters.png)
+
+#### Transforming the entered value and filtering a different column
+
+Sometimes the value the user types isn't the value stored in the database. A
+common case is an encrypted column: you can't query the plaintext directly, but
+you keep a deterministic hash alongside it (e.g. `account_number_hash`) for
+lookups. Pass `:filters` a map to transform the entered value and query a
+different field:
+
+```elixir
+defmodule MyApp.Accounts.AccountAdmin do
+  def index(_) do
+    [
+      account_number: %{
+        filters: %{
+          field: :account_number_hash, # column queried with ==
+          transform: &MyApp.Accounts.hash_account_number/1
+        }
+      }
+    ]
+  end
+end
+```
+
+This renders a free-text input like `filters: true`, but when the form is
+submitted the entered value is passed through `:transform` and the records are
+filtered with `account_number_hash == transform(entered_value)`.
+
+- `:field` — the schema field to query. Optional; defaults to the field the
+  config is attached to.
+- `:transform` — a 1-arity function applied to the entered value. Optional;
+  defaults to the identity function.
+
+The transform runs on the server, so the entered value travels in the request
+like any other filter.
 
 If you need to change the order of the records, define `ordering/1`:
 

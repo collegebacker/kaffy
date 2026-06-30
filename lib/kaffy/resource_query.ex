@@ -99,15 +99,35 @@ defmodule Kaffy.ResourceQuery do
   end
 
   defp get_filter_fields(params, resource) do
+    schema = resource[:schema]
+
     schema_fields =
-      Kaffy.ResourceSchema.fields(resource[:schema]) |> Enum.map(fn {k, _} -> to_string(k) end)
+      Kaffy.ResourceSchema.fields(schema) |> Enum.map(fn {k, _} -> to_string(k) end)
 
-    filtered_fields = Enum.filter(params, fn {k, v} -> k in schema_fields and v != "" end)
+    # display-field-string => :filters config (true | list | map | false)
+    field_filters =
+      Kaffy.ResourceAdmin.index(resource)
+      |> Enum.map(&Kaffy.ResourceSchema.kaffy_field_filters(schema, &1))
+      |> Enum.filter(&match?({_, _}, &1))
+      |> Map.new(fn {field, filters} -> {to_string(field), filters} end)
 
-    Enum.map(filtered_fields, fn {name, value} ->
-      f = String.to_existing_atom(name)
-      field_type = Kaffy.ResourceSchema.field_type(resource[:schema], f)
-      %{name: name, value: value, type: field_type}
+    params
+    |> Enum.filter(fn {k, v} ->
+      v != "" and (k in schema_fields or is_map(field_filters[k]))
+    end)
+    |> Enum.map(fn {name, value} ->
+      case Map.get(field_filters, name) do
+        config when is_map(config) ->
+          target = Map.get(config, :field, String.to_existing_atom(name))
+          transform = Map.get(config, :transform, & &1)
+          field_type = Kaffy.ResourceSchema.field_type(schema, target)
+          %{name: to_string(target), value: transform.(value), type: field_type}
+
+        _ ->
+          f = String.to_existing_atom(name)
+          field_type = Kaffy.ResourceSchema.field_type(schema, f)
+          %{name: name, value: value, type: field_type}
+      end
     end)
   end
 
