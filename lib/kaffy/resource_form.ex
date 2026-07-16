@@ -94,11 +94,11 @@ defmodule Kaffy.ResourceForm do
 
     schema = schema.__struct__
 
-    case type do
+    case normalize_type(type) do
       {:embed, %{cardinality: :one}} ->
         embed = Kaffy.ResourceSchema.embed_struct(schema, field)
         embed_fields = Kaffy.ResourceSchema.fields(embed)
-        embed_changeset = Ecto.Changeset.change(Map.get(data, field) || embed.__struct__)
+        embed_changeset = Ecto.Changeset.change(Map.get(data, field) || embed.__struct__())
 
         inputs_for(form, field, fn fp ->
           [
@@ -312,6 +312,12 @@ defmodule Kaffy.ResourceForm do
     end
   end
 
+  # Ecto 3.12 changed the parameterized type representation from
+  # {:parameterized, module, params} to {:parameterized, {module, params}}
+  defp normalize_type({:parameterized, {module, params}}), do: {:parameterized, module, params}
+  defp normalize_type({:array, type}), do: {:array, normalize_type(type)}
+  defp normalize_type(type), do: type
+
   defp put_value_if_set(opts, data, fun) when is_function(fun) do
     value = fun.(data)
     Keyword.put(opts, :value, value)
@@ -449,7 +455,7 @@ defmodule Kaffy.ResourceForm do
                 options.type == :string or
                   (Kaffy.Utils.is_module(options.type) and
                      Kernel.function_exported?(options.type, :type, 0) and
-                     options.type.type == :string)
+                     options.type.type() == :string)
               end)
 
             popular_strings =

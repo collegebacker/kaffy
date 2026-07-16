@@ -43,7 +43,7 @@ defmodule Kaffy.MixProject do
       {:ecto, "~> 3.0"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:jason, "~> 1.3", only: :test},
-      {:decimal, "~> 2.2", optional: true}
+      {:decimal, "~> 3.1", optional: true}
     ]
   end
 
